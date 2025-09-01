@@ -1,0 +1,191 @@
+<data_analysis_artifacts>
+  <python_artifact>
+    <title>Data Analysis Code</title>
+    <code>
+import pandas as pd
+
+df['Date'] = pd.to_datetime(df['Date'])
+df['Week'] = df['Date'].dt.to_period('W').apply(lambda r: r.start_time)
+
+# Aggregate COGS by week
+df_weekly_cogs = df.groupby('Week')['COGS'].sum().reset_index()
+
+# Output the aggregated data for visualization (limit to 5000 rows if needed)
+print('Aggregated weekly COGS data (for line chart):')
+print(df_weekly_cogs.head(5000).to_string(index=False))
+    </code>
+  </python_artifact>
+  <python_artifact>
+    <title>Execution Result</title>
+    <code>
+Aggregated weekly COGS data (for line chart):
+      Week  COGS
+2009-12-28 14160
+2010-02-01 14307
+2010-03-01 14410
+2010-03-29 14559
+2010-04-26 15056
+2010-05-31 15631
+2010-06-28 16122
+2010-07-26 16272
+2010-08-30 14949
+2010-09-27 14642
+2010-11-01 14205
+2010-11-29 14907
+2010-12-27 14160
+2011-01-31 14307
+2011-02-28 14410
+2011-03-28 14675
+2011-04-25 15056
+2011-05-30 15631
+2011-06-27 16122
+2011-08-01 16272
+2011-08-29 14949
+2011-09-26 14642
+2011-10-31 14205
+2011-11-28 14907
+    </code>
+  </python_artifact>
+</data_analysis_artifacts>
+<chart_artifact>
+  <echart_artifact>
+    <title>COGS by Week (Line Chart)</title>
+    <chart_options>
+    {
+      "title": {
+        "text": "Weekly COGS Trend",
+        "left": "center"
+      },
+      "tooltip": {
+        "trigger": "axis",
+        "axisPointer": {
+          "type": "line"
+        }
+      },
+      "legend": {
+        "data": ["COGS"],
+        "top": 10,
+        "right": 20
+      },
+      "xAxis": {
+        "type": "category",
+        "name": "Week Starting",
+        "nameLocation": "middle",
+        "nameGap": 40,
+        "axisLabel": {
+          "margin": 18,
+          "rotate": 35,
+          "formatter": "{value}",
+          "fontSize": 12
+        },
+        "data": [
+          "2009-12-28",
+          "2010-02-01",
+          "2010-03-01",
+          "2010-03-29",
+          "2010-04-26",
+          "2010-05-31",
+          "2010-06-28",
+          "2010-07-26",
+          "2010-08-30",
+          "2010-09-27",
+          "2010-11-01",
+          "2010-11-29",
+          "2010-12-27",
+          "2011-01-31",
+          "2011-02-28",
+          "2011-03-28",
+          "2011-04-25",
+          "2011-05-30",
+          "2011-06-27",
+          "2011-08-01",
+          "2011-08-29",
+          "2011-09-26",
+          "2011-10-31",
+          "2011-11-28"
+        ]
+      },
+      "yAxis": {
+        "type": "value",
+        "name": "COGS",
+        "nameLocation": "middle",
+        "nameGap": 40,
+        "axisLabel": {
+          "margin": 18,
+          "formatter": "{value}"
+        },
+        "splitLine": {
+          "show": true,
+          "lineStyle": {
+            "color": "#ececec"
+          }
+        }
+      },
+      "series": [
+        {
+          "name": "COGS",
+          "type": "line",
+          "smooth": true,
+          "showSymbol": true,
+          "symbolSize": 8,
+          "lineStyle": {
+            "width": 3
+          },
+          "itemStyle": {
+            "color": "#5470C6"
+          },
+          "data": [
+            14160,
+            14307,
+            14410,
+            14559,
+            15056,
+            15631,
+            16122,
+            16272,
+            14949,
+            14642,
+            14205,
+            14907,
+            14160,
+            14307,
+            14410,
+            14675,
+            15056,
+            15631,
+            16122,
+            16272,
+            14949,
+            14642,
+            14205,
+            14907
+          ]
+        }
+      ],
+      "grid": {
+        "left": 60,
+        "right": 30,
+        "bottom": 80,
+        "top": 60
+      }
+    }
+    </chart_options>
+  </echart_artifact>
+</chart_artifact>
+<followup_question>
+    <question>How might the pattern of COGS over these weeks inform my understanding of operational efficiency or potential seasonality in costs?</question>
+    <question>What additional metrics or breakdowns (such as by product type or market region) could help me diagnose the drivers behind changes in weekly COGS?</question>
+    <question>In what way could external factors, like promotions or supply chain disruptions, be investigated to explain spikes or drops in the weekly COGS line chart?</question>
+</followup_question>
+## Line Chart: COGS by Week
+
+The line chart below displays the weekly trend of Cost of Goods Sold (COGS), providing a clear view of how COGS fluctuates over each week. This visualization can help you identify operational patterns, spot seasonal effects, and monitor cost management efficiency.
+
+---
+
+**Key Details:**
+- **X-Axis:** Week Starting Date
+- **Y-Axis:** Total COGS for Each Week
+- **Data Range:** 2009-12-28 through 2011-11-28
+
+If you’d like to explore the drivers behind these weekly changes or break down COGS by additional dimensions (such as product type or market region), let me know!

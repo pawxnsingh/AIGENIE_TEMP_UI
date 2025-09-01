@@ -1,0 +1,213 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{amsmath, amssymb}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{float}
+\hypersetup{
+    pdftitle={Analytical Report},
+    pdfauthor={},
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+\graphicspath{{./assets/}{./artifacts/}}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE \textbf{Analytical Report}}\\[1em]
+    \textbf{Dataset:} Market Performance, Sales, Inventory, and Profitability Metrics\\
+    \textbf{Rows:} 4247 \hspace{1cm} \textbf{File Size:} 420.48 KB
+\end{center}
+
+\section*{Abstract}
+This report provides a comprehensive analysis of market performance, sales, inventory, and profitability across multiple states, markets, and product categories. The analyses include market performance overview, budget versus actual comparisons, product category insights, and temporal trends, offering actionable insights for business strategy and operational improvements.
+
+\section{Introduction}
+The dataset under review encompasses detailed records of sales, profit, inventory, and associated budgetary metrics for various products across different U.S. states and market regions. The objective of this report is to synthesize key findings from the data, highlight top-performing segments, and identify trends relevant to business decision-making.
+
+\section{Data Overview}
+\begin{itemize}
+    \item \textbf{States:} 20 unique U.S. states represented.
+    \item \textbf{Markets:} 4 regions (West, Central, East, South).
+    \item \textbf{Product Types:} 4 (e.g., Coffee, Espresso, Herbal Tea, Tea).
+    \item \textbf{Products:} 13 unique product names.
+    \item \textbf{Time Range:} January 2010 to December 2011.
+    \item \textbf{Key Metrics:} Sales, Profit, COGS, Inventory, Budgeted values.
+\end{itemize}
+
+\section{Methodology}
+\subsection{Statistical Analysis}
+Aggregations and groupings were performed by state, market, product type, and date to summarize sales, profit, and inventory. Comparative analyses between actual and budgeted metrics were conducted at both granular and aggregate levels.
+
+\subsection{Feature Engineering}
+Derived features include:
+\begin{itemize}
+    \item \textbf{Aggregated Sales/Profit/Inventory} by State, Market, Product Type, and Date.
+    \item \textbf{Difference Metrics} between actual and budgeted values.
+\end{itemize}
+
+\section{Results \& Findings}
+
+\subsection{Market Performance Overview}
+\begin{table}[H]
+\centering
+\caption{Top 5 States by Total Sales}
+\begin{tabular}{lrrr}
+\toprule
+State & Sales & Profit & Inventory \\
+\midrule
+California & 96,892 & 31,785 & 367,050 \\
+New York   & 70,852 & 20,096 & 302,624 \\
+Illinois   & 69,883 & 30,821 & 203,046 \\
+Nevada     & 60,159 & 10,616 & 335,986 \\
+Iowa       & 54,750 & 22,212 & 224,468 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Market Performance by Region}
+\begin{tabular}{lrrr}
+\toprule
+Market & Sales & Profit & Inventory \\
+\midrule
+West    & 272,264 & 73,996 & 1,172,818 \\
+Central & 265,045 & 93,852 & 998,120 \\
+East    & 178,284 & 59,110 & 690,072 \\
+South   & 103,926 & 32,478 & 321,400 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Budget vs. Actual Analysis}
+\begin{table}[H]
+\centering
+\caption{Overall Actual vs. Budgeted Totals}
+\begin{tabular}{lrrr}
+\toprule
+Metric & Actual & Budget & Difference \\
+\midrule
+Sales  & 819,519 & 745,890 & 73,629 \\
+Profit & 259,436 & 258,650 & 786 \\
+COGS   & 358,556 & 317,770 & 40,786 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Budget vs. Actual by State and Market (First 5 Rows)}
+\begin{tabular}{llrrrrrr}
+\toprule
+State & Market & Sales & Profit & COGS & Budget Sales & Budget Profit & Budget COGS \\
+\midrule
+California & West & 96,892 & 31,785 & 45,482 & 90,680 & 28,380 & 43,820 \\
+Colorado & Central & 48,179 & 17,743 & 20,402 & 45,280 & 17,620 & 18,500 \\
+Connecticut & East & 25,137 & 7,514 & 10,354 & 21,570 & 7,810 & 8,450 \\
+Florida & East & 37,443 & 12,310 & 15,496 & 32,600 & 11,800 & 13,020 \\
+Illinois & Central & 69,883 & 30,821 & 29,482 & 70,640 & 29,280 & 29,800 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Product Category \& Type Insights}
+\begin{table}[H]
+\centering
+\caption{Top 5 Products by Sales}
+\begin{tabular}{lrrr}
+\toprule
+Product & Sales & Profit & Inventory \\
+\midrule
+Columbian      & 128,019 & 55,697 & 338,662 \\
+Lemon          & 95,926  & 29,869 & 344,898 \\
+Caffe Mocha    & 84,904  & 17,678 & 362,996 \\
+Decaf Espresso & 78,162  & 29,502 & 308,124 \\
+Chamomile      & 75,578  & 27,231 & 273,656 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Product Type Summary}
+\begin{tabular}{lrrr}
+\toprule
+Product Type & Sales & Profit & Inventory \\
+\midrule
+Espresso    & 222,996 & 68,620 & 789,748 \\
+Coffee      & 216,536 & 74,576 & 802,992 \\
+Herbal Tea  & 207,214 & 63,254 & 828,968 \\
+Tea         & 172,773 & 52,986 & 760,702 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Temporal Trends \& Seasonality}
+\begin{longtable}{lrr}
+\caption{Monthly Sales and Profit (2010-2011)}\\
+\toprule
+Date & Sales & Profit \\
+\midrule
+2010-01-01 & 31,555 & 8,041 \\
+2010-02-01 & 32,092 & 8,369 \\
+2010-03-01 & 32,245 & 8,365 \\
+2010-04-01 & 32,651 & 8,563 \\
+2010-05-01 & 33,692 & 8,947 \\
+2010-06-01 & 35,125 & 9,571 \\
+2010-07-01 & 36,161 & 9,905 \\
+2010-08-01 & 36,029 & 9,566 \\
+2010-09-01 & 33,092 & 8,508 \\
+2010-10-01 & 32,849 & 8,674 \\
+2010-11-01 & 32,003 & 8,399 \\
+2010-12-01 & 33,373 & 8,811 \\
+2011-01-01 & 35,316 & 12,524 \\
+2011-02-01 & 34,192 & 12,419 \\
+2011-03-01 & 34,355 & 12,415 \\
+2011-04-01 & 35,112 & 12,863 \\
+2011-05-01 & 33,394 & 12,348 \\
+2011-06-01 & 34,807 & 13,218 \\
+2011-07-01 & 35,830 & 13,671 \\
+2011-08-01 & 35,707 & 13,205 \\
+2011-09-01 & 35,269 & 12,627 \\
+2011-10-01 & 34,987 & 12,878 \\
+2011-11-01 & 34,103 & 12,460 \\
+2011-12-01 & 35,580 & 13,089 \\
+\bottomrule
+\end{longtable}
+
+\section{Visualization Summaries}
+
+\subsection{Market Performance Overview}
+A grouped bar chart was generated to compare Sales, Profit, and Inventory for the top 5 states. This visualization highlights California as the leading state in both sales and inventory, with Illinois and New York also performing strongly.
+
+\subsection{Budget vs. Actual Analysis}
+A grouped bar chart illustrates the comparison between overall actual and budgeted totals for Sales, Profit, and COGS. The actual sales exceeded budget by \$73,629, while profit and COGS were closely aligned with budgeted values.
+
+\subsection{Product Category \& Type Insights}
+A grouped bar chart displays Sales, Profit, and Inventory by Product Type, revealing Espresso and Coffee as the highest contributors to overall sales and profit. The top 5 products by sales are also visualized, with Columbian and Lemon leading.
+
+\subsection{Temporal Trends \& Seasonality}
+A time series line chart of monthly Sales and Profit from January 2010 to December 2011 reveals a steady upward trend, with notable increases in profit during the first half of 2011, suggesting possible seasonality or growth effects.
+
+\section{Limitations}
+\begin{itemize}
+    \item The analysis is based on aggregated data; underlying drivers of performance (e.g., marketing campaigns, promotions) are not explicitly modeled.
+    \item Data quality issues such as missing values or outliers were not specifically addressed in this report.
+    \item No advanced forecasting, clustering, or anomaly detection methods were applied.
+\end{itemize}
+
+\section{Conclusion \& Recommendations}
+The analysis identifies California, New York, and Illinois as top-performing states, with the West and Central markets leading in sales and inventory. Actual sales consistently outperformed budgeted expectations, though profit margins remained closely aligned. Espresso and Coffee product types are key revenue drivers. Temporal analysis suggests seasonality, with higher profits observed in early 2011. It is recommended to further investigate the drivers of high performance in leading states and product categories, and to address potential data quality issues for more robust forecasting.
+
+\end{document}
