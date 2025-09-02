@@ -27,61 +27,45 @@ export const parseAIContent = (content: string): ParsedContent[] => {
   while ((chartMatch = chartRegex.exec(content)) !== null) {
     const artifactContent = chartMatch[1];
     const titleMatch = artifactContent.match(/<title>([\s\S]*?)<\/title>/);
+    if (!titleMatch) continue;
 
-    // New style: Plotly or any HTML via CDN url
+    // Priority: Plotly fig JSONs
+    let plotlyFigs: any[] | undefined = undefined;
+    const figsBlock = artifactContent.match(/<figs>([\s\S]*?)<\/figs>/);
+    const plotlyJsonBlock = artifactContent.match(/<plotly_json>([\s\S]*?)<\/plotly_json>/);
+
+    const tryParse = (raw: string) => {
+      try { return JSON.parse(raw.trim()); } catch { return null; }
+    };
+
+    if (figsBlock) {
+      const parsed = tryParse(figsBlock[1]);
+      if (parsed && Array.isArray(parsed)) plotlyFigs = parsed;
+      else if (parsed) plotlyFigs = [parsed];
+    } else if (plotlyJsonBlock) {
+      const parsed = tryParse(plotlyJsonBlock[1]);
+      if (parsed && Array.isArray(parsed)) plotlyFigs = parsed;
+      else if (parsed) plotlyFigs = [parsed];
+    }
+
+    // HTML CDN URL fallback
     const cdnUrlMatch = artifactContent.match(/<html_cdn_url>([\s\S]*?)<\/html_cdn_url>/);
 
-    // Legacy nested echart_artifact with JSON options
+    // Legacy ECharts options
     const echartMatch = artifactContent.match(/<echart_artifact>([\s\S]*?)<\/echart_artifact>/);
 
-    if (titleMatch) {
-      if (cdnUrlMatch) {
-        results.push({
-          type: 'chart_artifact',
-          title: titleMatch[1],
-          htmlCdnUrl: cdnUrlMatch[1].trim(),
-          content: artifactContent
-        });
-        continue;
-      }
-      if (echartMatch) {
-        const echartContent = echartMatch[1];
-        const optionsMatch = echartContent.match(/<chart_options>([\s\S]*?)<\/chart_options>/);
-        if (optionsMatch) {
-          try {
-            const chartOptions = JSON.parse(optionsMatch[1].trim());
-            results.push({
-              type: 'chart_artifact',
-              title: titleMatch[1],
-              chartOptions,
-              content: echartContent
-            });
-          } catch (e) {
-            console.error('Failed to parse chart options:', e);
-          }
-        }
-      }
-    }
-  }
-
-  // Backward compatibility: parse data_analysis_artifacts wrapper for python blocks
-  const dataAnalysisRegex = /<data_analysis_artifacts>([\s\S]*?)<\/data_analysis_artifacts>/g;
-  let dataAnalysisMatch;
-  while ((dataAnalysisMatch = dataAnalysisRegex.exec(content)) !== null) {
-    const artifactsContent = dataAnalysisMatch[1];
-    let innerMatch;
-    const innerPythonRegex = /<python_artifact>([\s\S]*?)<\/python_artifact>/g;
-    while ((innerMatch = innerPythonRegex.exec(artifactsContent)) !== null) {
-      const artifactContent = innerMatch[1];
-      const titleMatch = artifactContent.match(/<title>([\s\S]*?)<\/title>/);
-      const codeMatch = artifactContent.match(/<code>([\s\S]*?)<\/code>/);
-      if (titleMatch && codeMatch) {
-        results.push({
-          type: 'python_artifact',
-          title: titleMatch[1],
-          code: codeMatch[1].trim(),
-          content: artifactContent
-        });
+    if (plotlyFigs && plotlyFigs.length > 0) {
+      results.push({ type: 'chart_artifact', title: titleMatch[1], plotlyFigs, content: artifactContent });
+    } else if (cdnUrlMatch) {
+      results.push({ type: 'chart_artifact', title: titleMatch[1], htmlCdnUrl: cdnUrlMatch[1].trim(), content: artifactContent });
+    } else if (echartMatch) {
+      const echartContent = echartMatch[1];
+      const optionsMatch = echartContent.match(/<chart_options>([\s\S]*?)<\/chart_options>/);
+      if (optionsMatch) {
+        try {
+          const chartOptions = JSON.parse(optionsMatch[1].trim());
+          results.push({ type: 'chart_artifact', title: titleMatch[1], chartOptions, content: echartContent });
+        } catch { /* ignore */ }
       }
     }
   }

@@ -1,8 +1,12 @@
 import type { Conversation, Message } from '../types';
 
 // const API_BASE_URL = 'https://backend.microgcc.in/api';
-const API_BASE_URL = 'http://4.240.101.245/api'; // For local development
+const API_BASE_URL = 'https://backend-test.microgcc.in/api'; // For local development
+// const API_BASE_URL = 'http://localhost:9090/api'; // For local development
 const AUTH_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJfY21iOHhocmo3MDAwMGRjaTViZjZsbWI0NCIsImVtYWlsIjoidGVzdGFkbWluMUB0ZXN0LmNvbSIsInJvbGUiOiJvcmdfYWRtaW4iLCJleHAiOjE3NzQ3MDczMTd9.bxUMUvIlPzWF5EMP0oKvCoNXRMyxeMv9Rjd94Ow8w6w'
+// const AUTH_TOKEN =  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJfY21hcTd6bm01MDAwMXQ0eWk4dW5iMWZpbiIsImVtYWlsIjoicXdlcnR5QHNxbGdlbm5pZS5jb20iLCJyb2xlIjoidXNlciIsImV4cCI6MTc3NDc4Mzc5M30.vJZ3kEPV63ZOSi6aeIMiR1KZN3wHifPKRvx8CTodEQo"
+
+
 
 interface BackendConversation {
   id: string;
