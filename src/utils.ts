@@ -30,11 +30,22 @@ export const parseAIContent = (content: string): ParsedContent[] => {
 
     // New style: Plotly or any HTML via CDN url
     const cdnUrlMatch = artifactContent.match(/<html_cdn_url>([\s\S]*?)<\/html_cdn_url>/);
+  // New style (backend updated): direct JSON config URL
+  const jsonCdnUrlMatch = artifactContent.match(/<json_cdn_url>([\s\S]*?)<\/json_cdn_url>/);
 
     // Legacy nested echart_artifact with JSON options
     const echartMatch = artifactContent.match(/<echart_artifact>([\s\S]*?)<\/echart_artifact>/);
 
     if (titleMatch) {
+      if (jsonCdnUrlMatch) {
+        results.push({
+          type: 'chart_artifact',
+            title: titleMatch[1],
+            jsonCdnUrl: jsonCdnUrlMatch[1].trim(),
+            content: artifactContent
+        });
+        continue;
+      }
       if (cdnUrlMatch) {
         results.push({
           type: 'chart_artifact',

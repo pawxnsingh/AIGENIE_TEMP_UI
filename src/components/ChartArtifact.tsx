@@ -8,24 +8,29 @@ const PLOTLY_CDN_URL = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
 interface ChartArtifactProps {
   title: string;
   chartOptions?: any;
-  htmlCdnUrl?: string;
+  htmlCdnUrl?: string; // external pre-rendered HTML page
+  jsonCdnUrl?: string; // remote JSON configuration (e.g., Plotly spec)
 }
 
-const ChartArtifact: React.FC<ChartArtifactProps> = ({ title, chartOptions, htmlCdnUrl }) => {
+const ChartArtifact: React.FC<ChartArtifactProps> = ({ title, chartOptions, htmlCdnUrl, jsonCdnUrl }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstanceRef = useRef<echarts.ECharts | null>(null);
+  const plotlyRef = useRef<HTMLDivElement>(null);
 
   // External HTML rendering
-  const isExternal = !!htmlCdnUrl;
+  const isExternalHtml = !!htmlCdnUrl;
+  const isJsonPlotly = !!jsonCdnUrl;
   const externalContainerRef = useRef<HTMLDivElement>(null);
   const [htmlContent, setHtmlContent] = useState<string>('');
   const [loadingHtml, setLoadingHtml] = useState<boolean>(false);
   const [htmlError, setHtmlError] = useState<string | null>(null);
   const [renderIframe, setRenderIframe] = useState<boolean>(false);
+  const [jsonError, setJsonError] = useState<string | null>(null);
+  const [loadingJson, setLoadingJson] = useState<boolean>(false);
 
   // Fetch and render external HTML inline; fallback to iframe on CORS errors
   useEffect(() => {
-    if (!isExternal || !htmlCdnUrl) return;
+    if (!isExternalHtml || !htmlCdnUrl) return;
 
     // Dispose any existing ECharts instance when switching to external
     if (chartInstanceRef.current) {
@@ -61,11 +66,11 @@ const ChartArtifact: React.FC<ChartArtifactProps> = ({ title, chartOptions, html
     return () => {
       aborted = true;
     };
-  }, [isExternal, htmlCdnUrl]);
+  }, [isExternalHtml, htmlCdnUrl]);
 
   // Inject HTML into container and execute scripts (skip when using iframe fallback)
   useEffect(() => {
-    if (!isExternal || renderIframe) return;
+    if (!isExternalHtml || renderIframe) return;
     const container = externalContainerRef.current;
     if (!container) return;
 
@@ -160,11 +165,11 @@ const ChartArtifact: React.FC<ChartArtifactProps> = ({ title, chartOptions, html
     return () => {
       cancelled = true;
     };
-  }, [isExternal, renderIframe, htmlContent, htmlCdnUrl]);
+  }, [isExternalHtml, renderIframe, htmlContent, htmlCdnUrl]);
 
   // ECharts path (legacy)
   useEffect(() => {
-    if (isExternal) return; // external handled above
+    if (isExternalHtml || isJsonPlotly) return; // handled elsewhere
 
     if (chartRef.current && chartOptions) {
       if (chartInstanceRef.current) {
@@ -187,7 +192,77 @@ const ChartArtifact: React.FC<ChartArtifactProps> = ({ title, chartOptions, html
         chartInstanceRef.current?.dispose();
       };
     }
-  }, [chartOptions, isExternal]);
+  }, [chartOptions, isExternalHtml, isJsonPlotly]);
+
+  // Plotly JSON path
+  useEffect(() => {
+    if (!isJsonPlotly || !jsonCdnUrl) return;
+
+    let cancelled = false;
+    let mounted = true;
+    setJsonError(null);
+    setLoadingJson(true);
+
+    const ensurePlotly = async () => {
+      if ((window as any).Plotly) return;
+      await new Promise<void>((resolve, reject) => {
+        const existing = document.querySelector(`script[src="${PLOTLY_CDN_URL}"]`) as HTMLScriptElement | null;
+        if (existing) {
+          existing.addEventListener('load', () => resolve());
+          existing.addEventListener('error', () => reject(new Error('Failed to load Plotly')));
+          return;
+        }
+        const s = document.createElement('script');
+        s.src = PLOTLY_CDN_URL;
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('Failed to load Plotly'));
+        document.head.appendChild(s);
+      });
+    };
+
+    const loadAndRender = async () => {
+      try {
+        await ensurePlotly();
+        const res = await fetch(jsonCdnUrl, { mode: 'cors' });
+        if (!res.ok) throw new Error(`Failed to fetch JSON (${res.status})`);
+        const spec = await res.json();
+        if (cancelled) return;
+        const plotlyContainer = plotlyRef.current;
+        if (!plotlyContainer) return;
+        const data = spec.data || spec.traces || spec; // heuristic
+        const layout = spec.layout || spec.figure?.layout || {};
+        const config = spec.config || { responsive: true };
+        await (window as any).Plotly.newPlot(plotlyContainer, data, layout, config);
+        // Handle resize
+        const handleResize = () => {
+          (window as any).Plotly.Plots.resize(plotlyContainer);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => {
+          window.removeEventListener('resize', handleResize);
+          if ((window as any).Plotly && plotlyContainer) {
+            try { (window as any).Plotly.purge(plotlyContainer); } catch {}
+          }
+        };
+      } catch (e: any) {
+        if (!cancelled) setJsonError(e.message || 'Failed to render chart');
+      } finally {
+        if (!cancelled) setLoadingJson(false);
+      }
+    };
+
+    const cleanupPromise = loadAndRender();
+
+    return () => {
+      cancelled = true;
+      if (mounted) {
+        cleanupPromise.then(cleaner => {
+          if (typeof cleaner === 'function') cleaner();
+        });
+      }
+      mounted = false;
+    };
+  }, [isJsonPlotly, jsonCdnUrl]);
 
   const handleDownload = () => {
     if (chartInstanceRef.current) {
@@ -219,7 +294,7 @@ const ChartArtifact: React.FC<ChartArtifactProps> = ({ title, chartOptions, html
         </div>
         <div className="flex items-center space-x-2">
           {/* For external HTML, we render inline and do not expose download/open controls */}
-          {!isExternal && (
+          {!isExternalHtml && !isJsonPlotly && (
             <>
               <button onClick={handleDownload} className="p-1.5 rounded-md hover:bg-gray-200 transition-colors" title="Download chart">
                 <Download size={14} className="text-gray-600" />
@@ -233,7 +308,7 @@ const ChartArtifact: React.FC<ChartArtifactProps> = ({ title, chartOptions, html
       </div>
       <div className="p-4">
         <div className="relative w-full h-[600px] overflow-hidden">
-          {isExternal ? (
+          {isExternalHtml ? (
             renderIframe ? (
               <iframe
                 src={htmlCdnUrl}
@@ -245,6 +320,12 @@ const ChartArtifact: React.FC<ChartArtifactProps> = ({ title, chartOptions, html
                 {/* HTML will be injected here */}
               </div>
             )
+          ) : isJsonPlotly ? (
+            <div
+              ref={plotlyRef}
+              className="w-full h-full bg-white rounded-lg border border-gray-200"
+              style={{ width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%' }}
+            />
           ) : (
             <div
               ref={chartRef}
@@ -253,13 +334,13 @@ const ChartArtifact: React.FC<ChartArtifactProps> = ({ title, chartOptions, html
             />
           )}
 
-          {isExternal && loadingHtml && !renderIframe && (
+          {isExternalHtml && loadingHtml && !renderIframe && (
             <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center">
               <div className="text-sm text-gray-600">Loading chart…</div>
             </div>
           )}
 
-          {isExternal && htmlError && !renderIframe && (
+          {isExternalHtml && htmlError && !renderIframe && (
             <div className="absolute inset-0 bg-gray-50 rounded-lg flex items-center justify-center">
               <div className="text-center">
                 <BarChart3 size={48} className="text-gray-400 mx-auto mb-2" />
@@ -268,7 +349,16 @@ const ChartArtifact: React.FC<ChartArtifactProps> = ({ title, chartOptions, html
             </div>
           )}
 
-          {!isExternal && !chartOptions && (
+          {isJsonPlotly && (loadingJson || jsonError) && (
+            <div className="absolute inset-0 bg-gray-50 rounded-lg flex items-center justify-center">
+              <div className="text-center">
+                <BarChart3 size={48} className="text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">{loadingJson ? 'Loading chart data…' : jsonError}</p>
+              </div>
+            </div>
+          )}
+
+          {!isExternalHtml && !isJsonPlotly && !chartOptions && (
             <div className="absolute inset-0 bg-gray-50 rounded-lg flex items-center justify-center">
               <div className="text-center">
                 <BarChart3 size={48} className="text-gray-400 mx-auto mb-2" />
@@ -278,7 +368,7 @@ const ChartArtifact: React.FC<ChartArtifactProps> = ({ title, chartOptions, html
           )}
         </div>
 
-        {!isExternal && (
+        {!isExternalHtml && !isJsonPlotly && (
           <details className="mt-4">
             <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-800">View Chart Configuration</summary>
             <pre className="mt-2 text-xs text-gray-600 bg-gray-50 p-3 rounded overflow-x-auto">{JSON.stringify(chartOptions, null, 2)}</pre>

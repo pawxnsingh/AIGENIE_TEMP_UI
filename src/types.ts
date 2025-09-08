@@ -29,4 +29,6 @@ export interface ParsedContent {
   chartOptions?: any;
   // New: support CDN-hosted chart HTML pages (e.g., Plotly render URLs)
   htmlCdnUrl?: string;
+  // New: support direct Plotly (or other) JSON config via URL
+  jsonCdnUrl?: string;
 }

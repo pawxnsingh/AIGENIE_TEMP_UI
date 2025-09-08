@@ -181,7 +181,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onQuestionClick 
                       <PythonArtifact title={content.title || ''} code={content.code || ''} />
                     )}
                     {content.type === 'chart_artifact' && (
-                      <ChartArtifact title={content.title || ''} chartOptions={content.chartOptions} htmlCdnUrl={(content as any).htmlCdnUrl} />
+                      <ChartArtifact 
+                        title={content.title || ''} 
+                        chartOptions={content.chartOptions} 
+                        htmlCdnUrl={(content as any).htmlCdnUrl}
+                        jsonCdnUrl={(content as any).jsonCdnUrl}
+                      />
                     )}
                     {content.type === 'followup_question' && (
                       <FollowUpQuestions questions={content.content} onQuestionClick={onQuestionClick} />
