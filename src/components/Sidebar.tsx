@@ -8,14 +8,29 @@ interface SidebarProps {
   activeConversationId: string | null;
   onConversationSelect: (id: string) => void;
   onNewConversation: () => void;
+  onLoadMoreConversations?: () => void | Promise<void>;
+  hasNextConversations?: boolean;
+  isLoadingConversations?: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   conversations,
   activeConversationId,
   onConversationSelect,
-  onNewConversation
+  onNewConversation,
+  onLoadMoreConversations,
+  hasNextConversations = false,
+  isLoadingConversations = false
 }) => {
+  const handleScroll: React.UIEventHandler<HTMLDivElement> = (e) => {
+    if (!onLoadMoreConversations || !hasNextConversations || isLoadingConversations) return;
+    const el = e.currentTarget;
+    const threshold = 120; // px from bottom
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - threshold) {
+      onLoadMoreConversations();
+    }
+  };
+
   return (
     <div className="w-80 h-full bg-black/30 backdrop-blur-xl border-r border-white/30 flex flex-col shadow-2xl">
       {/* Header */}
@@ -42,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto px-3 py-4">
+  <div className="flex-1 overflow-y-auto px-3 py-4" onScroll={handleScroll}>
         <div className="space-y-2">
           {conversations.length === 0 ? (
             // Loading state
@@ -84,6 +99,19 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
             ))
+          )}
+          {/* Infinite scroll loader */}
+          {isLoadingConversations && conversations.length > 0 && (
+            <div className="flex items-center justify-center py-4">
+              <div className="flex items-center space-x-2 text-white/80 text-sm">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span>Loading more...</span>
+              </div>
+            </div>
+          )}
+          {/* Reached end indicator */}
+          {!isLoadingConversations && !hasNextConversations && conversations.length > 0 && (
+            <div className="py-3 text-center text-white/50 text-xs">No more conversations</div>
           )}
         </div>
       </div>

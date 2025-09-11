@@ -75,23 +75,47 @@ export class ApiService {
     }
   }
 
-  static async fetchConversations(): Promise<Conversation[]> {
+  static async fetchConversationsPage(page: number = 1, limit: number = 20): Promise<{
+    conversations: Conversation[];
+    page: number;
+    limit: number;
+    hasNext: boolean;
+    total: number;
+    totalPages: number;
+  }> {
     try {
-      const response = await this.request<ConversationsResponse>('/conversation');
+      const response = await this.request<ConversationsResponse>(`/conversation?page=${page}&limit=${limit}`);
       
       // Transform API response to match our Conversation interface
-      return response.data.conversations.map((backendConv: BackendConversation) => ({
+      const conversations = response.data.conversations.map((backendConv: BackendConversation) => ({
         id: backendConv.id,
         title: backendConv.title || 'New Chat',
         lastMessage: 'Click to view conversation', // We'll update this when we fetch messages
         timestamp: new Date(backendConv.updatedAt),
         messages: [], // Will be populated when conversation is selected
       }));
+
+      const { page: respPage, limit: respLimit, total, total_pages, has_next } = response.data.pagination;
+
+      return {
+        conversations,
+        page: respPage,
+        limit: respLimit,
+        hasNext: has_next,
+        total,
+        totalPages: total_pages,
+      };
     } catch (error) {
       console.error('Failed to fetch conversations:', error);
-      // Return empty array on error
-      return [];
+      // Return empty page on error
+      return { conversations: [], page, limit, hasNext: false, total: 0, totalPages: 0 };
     }
+  }
+
+  // Backward-compatible helper to fetch first page only
+  static async fetchConversations(): Promise<Conversation[]> {
+    const { conversations } = await this.fetchConversationsPage(1, 20);
+    return conversations;
   }
 
   static async fetchConversationMessages(conversationId: string): Promise<Message[]> {

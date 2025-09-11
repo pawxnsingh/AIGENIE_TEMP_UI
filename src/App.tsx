@@ -9,6 +9,9 @@ function App() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [convPage, setConvPage] = useState(1);
+  const [convHasNext, setConvHasNext] = useState(true);
+  const [convLoading, setConvLoading] = useState(false);
 
   // Function to get conversation ID from URL
   const getConversationIdFromUrl = (): string | null => {
@@ -43,30 +46,55 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [conversations]);
 
-  // Fetch conversations from backend
+  // Fetch conversations from backend (first page)
   useEffect(() => {
     const loadConversations = async () => {
       try {
-        const fetchedConversations = await ApiService.fetchConversations();
-        setConversations(fetchedConversations);
+        setConvLoading(true);
+        const { conversations: firstPageConvs, page, hasNext } = await ApiService.fetchConversationsPage(1, 20);
+        setConversations(firstPageConvs);
+        setConvPage(page);
+        setConvHasNext(hasNext);
         
         // Check if there's a conversation ID in the URL
         const conversationIdFromUrl = getConversationIdFromUrl();
-        if (conversationIdFromUrl && fetchedConversations.some(c => c.id === conversationIdFromUrl)) {
+        if (conversationIdFromUrl && firstPageConvs.some(c => c.id === conversationIdFromUrl)) {
           setActiveConversationId(conversationIdFromUrl);
-        } else if (fetchedConversations.length > 0) {
+        } else if (firstPageConvs.length > 0) {
           // Set the first conversation as active if no valid URL conversation ID
-          setActiveConversationId(fetchedConversations[0].id);
-          updateUrlWithConversationId(fetchedConversations[0].id);
+          setActiveConversationId(firstPageConvs[0].id);
+          updateUrlWithConversationId(firstPageConvs[0].id);
         }
       } catch (error) {
         console.error('Failed to load conversations:', error);
         // Optionally show an error message to the user
+      } finally {
+        setConvLoading(false);
       }
     };
 
     loadConversations();
   }, []);
+
+  const loadMoreConversations = async () => {
+    if (convLoading || !convHasNext) return;
+    try {
+      setConvLoading(true);
+      const nextPage = convPage + 1;
+      const { conversations: nextConvs, page, hasNext } = await ApiService.fetchConversationsPage(nextPage, 20);
+      setConversations(prev => {
+        const existingIds = new Set(prev.map(c => c.id));
+        const filtered = nextConvs.filter(c => !existingIds.has(c.id));
+        return [...prev, ...filtered];
+      });
+      setConvPage(page);
+      setConvHasNext(hasNext);
+    } catch (e) {
+      console.error('Failed to load more conversations:', e);
+    } finally {
+      setConvLoading(false);
+    }
+  };
 
   // Load messages when active conversation changes
   useEffect(() => {
@@ -318,7 +346,10 @@ function App() {
         conversations={conversations}
         activeConversationId={activeConversationId}
         onConversationSelect={handleConversationSelect}
-        onNewConversation={handleNewConversation}
+  onNewConversation={handleNewConversation}
+  onLoadMoreConversations={loadMoreConversations}
+  hasNextConversations={convHasNext}
+  isLoadingConversations={convLoading}
       />
       <ChatInterface
         conversation={activeConversation || null}
