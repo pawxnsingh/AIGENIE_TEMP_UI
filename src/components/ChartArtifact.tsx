@@ -298,6 +298,7 @@ const ChartArtifact: React.FC<ChartArtifactProps> = ({ title, chartOptions, html
 		if (!isExternalHtml || !detectedPlotlySpec) return;
 
 		let cancelled = false;
+    console.log('cancelled', cancelled)
 
 		const ensurePlotly = async () => {
 			if ((window as any).Plotly) return;
